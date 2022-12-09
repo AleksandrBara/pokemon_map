@@ -1,10 +1,8 @@
 import folium
-import json
 from django.utils.timezone import localtime
-from django.http import HttpResponseNotFound
 from django.shortcuts import render
 from .models import Pokemon, PokemonEntity
-from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
 
 MOSCOW_CENTER = [55.751244, 37.618423]
 DEFAULT_IMAGE_URL = (
@@ -50,10 +48,7 @@ def show_all_pokemons(request):
 
 
 def show_pokemon(request, pokemon_id):
-    try:
-        pokemon = Pokemon.objects.get(id=int(pokemon_id))
-    except ObjectDoesNotExist:
-        return HttpResponseNotFound('<h1>Такой покемон не найден</h1>')
+    pokemon = get_object_or_404(Pokemon, id=pokemon_id)
     pokemon_entity = PokemonEntity.objects.get(pokemon=int(pokemon_id))
     image_url = request.build_absolute_uri(pokemon.image.url)
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
@@ -73,12 +68,12 @@ def show_pokemon(request, pokemon_id):
             "pokemon_id": pokemon.previous_evolution.id,
             "img_url": pokemon.previous_evolution.image.url,
         }
-    next_evolutions = pokemon.next_evolutions.first()
-    if next_evolutions:
+    next_evolution = pokemon.next_evolution.first()
+    if next_evolution:
         pokemon_description['next_evolution'] = {
-            "title_ru": next_evolutions.title,
-            "pokemon_id": next_evolutions.id,
-            "img_url": next_evolutions.image.url,
+            "title_ru": next_evolution.title,
+            "pokemon_id": next_evolution.id,
+            "img_url": next_evolution.image.url,
         }
     return render(request, 'pokemon.html', context={
         'map': folium_map._repr_html_(), 'pokemon': pokemon_description
