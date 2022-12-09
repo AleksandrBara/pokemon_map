@@ -30,11 +30,11 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 def show_all_pokemons(request):
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
 
-    pokemons_entitys = PokemonEntity.objects.filter(
+    pokemons_entities = PokemonEntity.objects.filter(
         disappeared_at__gt=localtime(),
         appeared_at__lt=localtime())
     pokemons_on_page = []
-    for pokemon_entity in pokemons_entitys:
+    for pokemon_entity in pokemons_entities:
         image_url = request.build_absolute_uri(pokemon_entity.pokemon.image.url)
         add_pokemon(folium_map, pokemon_entity.lat, pokemon_entity.lon, image_url)
         pokemons_on_page.append({
@@ -58,7 +58,7 @@ def show_pokemon(request, pokemon_id):
     image_url = request.build_absolute_uri(pokemon.image.url)
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
     add_pokemon(folium_map, pokemon_entity.lat, pokemon_entity.lon, image_url)
-    pokemon_discription = {
+    pokemon_description = {
         'img_url': image_url,
         'title_ru': pokemon.title,
         'description': pokemon.description,
@@ -68,18 +68,18 @@ def show_pokemon(request, pokemon_id):
         'next_evolutions': {}
     }
     if pokemon.previous_evolution:
-        pokemon_discription['previous_evolution'] = {
+        pokemon_description['previous_evolution'] = {
             "title_ru": pokemon.previous_evolution.title,
             "pokemon_id": pokemon.previous_evolution.id,
             "img_url": pokemon.previous_evolution.image.url,
         }
     next_evolutions = pokemon.next_evolutions.first()
     if next_evolutions:
-        pokemon_discription['next_evolution'] = {
+        pokemon_description['next_evolution'] = {
             "title_ru": next_evolutions.title,
             "pokemon_id": next_evolutions.id,
             "img_url": next_evolutions.image.url,
         }
     return render(request, 'pokemon.html', context={
-        'map': folium_map._repr_html_(), 'pokemon': pokemon_discription
+        'map': folium_map._repr_html_(), 'pokemon': pokemon_description
     })
